@@ -1,0 +1,27 @@
+{"properties": [
+  {
+    "name": "meetingSample",
+    "type": "java.lang.String",
+    "description": "A description for 'meetingSample'"
+  },
+  {
+    "name": "client-id",
+    "type": "java.lang.String",
+    "description": "A description for 'client-id'"
+  },
+  {
+    "name": "client-secret",
+    "type": "java.lang.String",
+    "description": "A description for 'client-secret'"
+  },
+  {
+    "name": "token-url",
+    "type": "java.lang.String",
+    "description": "A description for 'token-url'"
+  },
+  {
+    "name": "zoom.client-id",
+    "type": "java.lang.String",
+    "description": "A description for 'zoom.client-id'"
+  }
+]}
