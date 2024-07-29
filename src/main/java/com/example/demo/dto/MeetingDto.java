@@ -48,7 +48,7 @@ public class MeetingDto {
 	}
 	
 	public Meetings toEntity() throws ParseException {
-		SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss'Z'"); 
+		SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss"); 
 		return Meetings.builder()
 				.id(id)
 				.topic(topic)

@@ -44,10 +44,9 @@ public class MeetingApiController {
 	}
 
 	@PatchMapping("/meeting/{meetingId}")
-	public String patchMeeting(@PathVariable long meetingId) throws Exception {
+	public Meetings patchMeeting(@PathVariable long meetingId, @RequestBody MeetingDto dto) throws Exception {
 		log.info("request url :"+"/meeting \n method : PATCH");
-		
-		return null;
+		return apiService.patchMeeting(meetingId, dto);
 	}
 	
 }

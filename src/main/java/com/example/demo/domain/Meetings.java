@@ -1,6 +1,8 @@
 package com.example.demo.domain;
 
 import java.sql.Timestamp;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
 import java.util.Date;
 
 import javax.persistence.*;
@@ -8,6 +10,7 @@ import javax.persistence.*;
 import org.springframework.data.annotation.CreatedDate;
 import org.springframework.data.annotation.LastModifiedDate;
 
+import com.example.demo.dto.MeetingDto;
 import com.example.demo.dto.MeetingSetting;
 
 import lombok.Builder;
@@ -50,6 +53,16 @@ public class Meetings {
 		this.created_at = created_at;
 		this.join_url = join_url;
 		this.host_email = host_email;
+	}
+	
+	public void update(MeetingDto dto) throws ParseException {
+		SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss"); 
+		this.topic = dto.getTopic();
+		this.type = dto.getType();
+		this.default_password = dto.isDefault_password();
+		this.duration = dto.getDuration();
+		this.password = dto.getPassword();
+		this.start_time = new Timestamp(format.parse(dto.getStart_time()).getTime());		
 	}
 	
 }

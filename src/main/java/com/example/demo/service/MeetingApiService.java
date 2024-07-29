@@ -15,6 +15,7 @@ import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.http.client.HttpComponentsClientHttpRequestFactory;
 import org.springframework.stereotype.Service;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
@@ -44,7 +45,8 @@ public class MeetingApiService {
     
     private final Logger log = LoggerFactory.getLogger(this.getClass().getSimpleName());
 
-    private final RestTemplate restTemplate = new RestTemplate();
+    //Invalid HTTP method: PATCH 에러 -> apache HttpClientFactory 주입하여 생성
+    private final RestTemplate restTemplate = new RestTemplate(new HttpComponentsClientHttpRequestFactory());
 
 	private final String ZOOM_API_URL = "https://api.zoom.us/v2";
 	
@@ -193,9 +195,16 @@ public class MeetingApiService {
      * 회의 id로 생성된 회의를 수정한다.
      * @param meetingId
      * @return
+     * @throws JsonProcessingException 
+     * @throws ParseException 
      */
-    public String patchMeeting(Long meetingId) {
+    public Meetings patchMeeting(Long meetingId, MeetingDto dto) throws JsonProcessingException, ParseException {
     	String path = "/meetings/"+meetingId;
+    	ObjectMapper mapper= new ObjectMapper();
+    	//DB에 저장된 미팅인지 확인
+    	Meetings meeting = repository.findById(meetingId)
+    			.orElseThrow(()->new IllegalArgumentException("존재하지 않는 회의 아이디입니다. id : "+meetingId));
+    	
     	// 토큰 받아오기
 		String token = getAccessToken();
 
@@ -205,21 +214,24 @@ public class MeetingApiService {
 		headers.set("Content-Type", "application/json");
 		
 		// 미팅 변수 담기(바디 생성)
-		String meetingDetails = "{ \"topic\": \"Test Meeting Patch\", \"type\": 2 }";
-
+		String meetingDetails = mapper.writeValueAsString(dto);
+		log.info("meetingDetails : "+meetingDetails);
 		//바디, 헤더 담기
 		HttpEntity<String> entity = new HttpEntity<>(meetingDetails, headers);
     	
     	//응답 받기
-		ResponseEntity<Map> response = restTemplate.exchange(ZOOM_API_URL+path, HttpMethod.GET, entity, Map.class);
+		ResponseEntity<MeetingDto> response = restTemplate.exchange(ZOOM_API_URL+path, HttpMethod.PATCH, entity, MeetingDto.class);
     	
 		//결과 리턴
-		if(response.getStatusCode() == HttpStatus.OK) {
-			log.info("success getting meeting \n url : "+ZOOM_API_URL+path+"\n meeting id : "+meetingId);
-			return response.getBody().toString();
+		if(response.getStatusCode() == HttpStatus.NO_CONTENT) { //STATUS : 204
+			log.info("success patching meeting \n url : "+ZOOM_API_URL+path+"\n meeting id : "+meetingId);
+			//DB 업데이트
+			meeting.update(dto);
+	    	
+			return repository.findById(meetingId).orElseThrow(()->new IllegalArgumentException("회의 수정 실패 id: "+response.getBody().getId()));
 		} else {
-			log.warn("fail to get meeting \n url : "+ZOOM_API_URL+path+"\n meeting id : "+meetingId);
-			throw new RuntimeException("회의 조회 실패 : " + response.getStatusCode());
+			log.warn("fail to patch meeting \n url : "+ZOOM_API_URL+path+"\n meeting id : "+meetingId);
+			throw new RuntimeException("회의 수정 실패 : " + response.getStatusCode());
 		}
     }
 }
